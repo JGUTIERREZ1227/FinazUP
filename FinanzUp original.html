@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FinanzUp</title>
+  <style>
+    :root { font-family: Arial, sans-serif; color: #1f2937; background: #f4f6f8; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    main { max-width: 900px; margin: 0 auto; padding: 24px 16px 40px; }
+    h1 { margin: 0 0 6px; }
+    h2 { margin: 0 0 16px; font-size: 1.15rem; }
+    .subtitulo { margin: 0 0 22px; color: #667085; }
+    section { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+    .resumen { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .tarjeta { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; }
+    .tarjeta span { display: block; color: #667085; font-size: .9rem; margin-bottom: 8px; }
+    .tarjeta strong { font-size: 1.2rem; overflow-wrap: anywhere; }
+    form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+    label { display: block; font-size: .9rem; font-weight: 600; }
+    input, select, button { width: 100%; margin-top: 6px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font: inherit; }
+    button { border: 0; background: #176b55; color: white; font-weight: 700; cursor: pointer; }
+    button:hover { background: #115541; }
+    .ancho { grid-column: 1 / -1; }
+    .presupuesto { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+    .presupuesto div { border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; }
+    .presupuesto span { display: block; color: #667085; font-size: .88rem; margin-bottom: 6px; }
+    .presupuesto strong { overflow-wrap: anywhere; }
+    .filtro { max-width: 240px; margin-bottom: 14px; }
+    .tabla-contenedor { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+    th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+    th { color: #667085; font-weight: 700; }
+    .ingreso { color: #087443; }
+    .gasto { color: #b42318; }
+    .eliminar { width: auto; margin: 0; padding: 6px 9px; background: #b42318; }
+    .vacio { color: #667085; text-align: center; padding: 18px 0 4px; }
+    [hidden] { display: none !important; }
+    @media (max-width: 480px) { main { padding: 18px 10px 28px; } section { padding: 14px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>FinanzUp</h1>
+    <p class="subtitulo">Control de ingresos, gastos y presupuesto mensual.</p>
+
+    <div class="resumen">
+      <div class="tarjeta"><span>Saldo total</span><strong id="saldoTotal">₡0,00</strong></div>
+      <div class="tarjeta"><span>Ingresos del mes</span><strong id="ingresosMes">₡0,00</strong></div>
+      <div class="tarjeta"><span>Gastos del mes</span><strong id="gastosMes">₡0,00</strong></div>
+      <div class="tarjeta"><span>Resultado del mes</span><strong id="resultadoMes">₡0,00</strong></div>
+    </div>
+
+    <section>
+      <h2>Registrar movimiento</h2>
+      <form id="formulario">
+        <label>Tipo
+          <select id="tipo" required>
+            <option value="ingreso">Ingreso</option>
+            <option value="gasto">Gasto</option>
+          </select>
+        </label>
+        <label>Fecha
+          <input id="fecha" type="date" required>
+        </label>
+        <label>Concepto
+          <input id="concepto" type="text" maxlength="80" required placeholder="Ej. mesada o transporte">
+        </label>
+        <label>Monto (₡)
+          <input id="monto" type="number" min="0.01" step="0.01" required placeholder="0,00">
+        </label>
+        <label id="grupoCategoria" hidden>Categoría del gasto
+          <select id="categoria">
+            <option value="Necesidades">Necesidades (50%)</option>
+            <option value="Ahorro">Ahorro (20%)</option>
+            <option value="Gustos">Gustos (20%)</option>
+            <option value="Metas y otros">Metas y otros (10%)</option>
+          </select>
+        </label>
+        <div class="ancho"><button type="submit">Guardar movimiento</button></div>
+      </form>
+    </section>
+
+    <section>
+      <h2>Presupuesto 50/20/20/10</h2>
+      <label class="filtro">Mes del resumen
+        <input id="mes" type="month">
+      </label>
+      <div class="presupuesto">
+        <div><span>Necesidades · 50%</span><strong id="necesidades">₡0,00</strong></div>
+        <div><span>Ahorro · 20%</span><strong id="ahorro">₡0,00</strong></div>
+        <div><span>Gustos · 20%</span><strong id="gustos">₡0,00</strong></div>
+        <div><span>Metas y otros · 10%</span><strong id="metas">₡0,00</strong></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Movimientos del mes</h2>
+      <div class="tabla-contenedor">
+        <table>
+          <thead><tr><th>Fecha</th><th>Tipo</th><th>Concepto</th><th>Categoría</th><th>Monto</th><th></th></tr></thead>
+          <tbody id="historial"></tbody>
+        </table>
+      </div>
+      <p id="vacio" class="vacio">Todavía no hay movimientos para este mes.</p>
+    </section>
+  </main>
+
+  <script>
+    'use strict';
+
+    const CLAVE = 'finanzup_movimientos_v1';
+    const formatoDinero = new Intl.NumberFormat('es-CR', {
+      style: 'currency', currency: 'CRC', minimumFractionDigits: 2, maximumFractionDigits: 2
+    });
+
+    const formulario = document.getElementById('formulario');
+    const tipo = document.getElementById('tipo');
+    const fecha = document.getElementById('fecha');
+    const concepto = document.getElementById('concepto');
+    const monto = document.getElementById('monto');
+    const categoria = document.getElementById('categoria');
+    const grupoCategoria = document.getElementById('grupoCategoria');
+    const mes = document.getElementById('mes');
+    const historial = document.getElementById('historial');
+    const vacio = document.getElementById('vacio');
+
+    function fechaLocal() {
+      const hoy = new Date();
+      const anio = hoy.getFullYear();
+      const mesHoy = String(hoy.getMonth() + 1).padStart(2, '0');
+      const dia = String(hoy.getDate()).padStart(2, '0');
+      return `${anio}-${mesHoy}-${dia}`;
+    }
+
+    function leerMovimientos() {
+      try {
+        const datos = JSON.parse(localStorage.getItem(CLAVE) || '[]');
+        return Array.isArray(datos) ? datos : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    let movimientos = leerMovimientos();
+
+    function guardarMovimientos() {
+      localStorage.setItem(CLAVE, JSON.stringify(movimientos));
+    }
+
+    function dinero(valor) {
+      return formatoDinero.format(valor);
+    }
+
+    function escapar(texto) {
+      return String(texto).replace(/[&<>"']/g, function (caracter) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[caracter];
+      });
+    }
+
+    function actualizarCategoria() {
+      grupoCategoria.hidden = tipo.value !== 'gasto';
+    }
+
+    function renderizar() {
+      const mesSeleccionado = mes.value;
+      const movimientosMes = movimientos.filter(function (movimiento) {
+        return movimiento.fecha.slice(0, 7) === mesSeleccionado;
+      });
+
+      const ingresosTotales = movimientos
+        .filter(m => m.tipo === 'ingreso')
+        .reduce((suma, m) => suma + m.monto, 0);
+      const gastosTotales = movimientos
+        .filter(m => m.tipo === 'gasto')
+        .reduce((suma, m) => suma + m.monto, 0);
+      const ingresos = movimientosMes
+        .filter(m => m.tipo === 'ingreso')
+        .reduce((suma, m) => suma + m.monto, 0);
+      const gastos = movimientosMes
+        .filter(m => m.tipo === 'gasto')
+        .reduce((suma, m) => suma + m.monto, 0);
+
+      document.getElementById('saldoTotal').textContent = dinero(ingresosTotales - gastosTotales);
+      document.getElementById('ingresosMes').textContent = dinero(ingresos);
+      document.getElementById('gastosMes').textContent = dinero(gastos);
+      document.getElementById('resultadoMes').textContent = dinero(ingresos - gastos);
+      document.getElementById('necesidades').textContent = dinero(ingresos * 0.50);
+      document.getElementById('ahorro').textContent = dinero(ingresos * 0.20);
+      document.getElementById('gustos').textContent = dinero(ingresos * 0.20);
+      document.getElementById('metas').textContent = dinero(ingresos * 0.10);
+
+      movimientosMes.sort((a, b) => b.fecha.localeCompare(a.fecha));
+      historial.innerHTML = movimientosMes.map(function (movimiento) {
+        const tipoTexto = movimiento.tipo === 'ingreso' ? 'Ingreso' : 'Gasto';
+        const clase = movimiento.tipo === 'ingreso' ? 'ingreso' : 'gasto';
+        const categoriaTexto = movimiento.tipo === 'gasto' ? escapar(movimiento.categoria || 'Necesidades') : '—';
+        return `<tr>
+          <td>${escapar(movimiento.fecha)}</td>
+          <td class="${clase}">${tipoTexto}</td>
+          <td>${escapar(movimiento.concepto)}</td>
+          <td>${categoriaTexto}</td>
+          <td class="${clase}">${dinero(movimiento.monto)}</td>
+          <td><button class="eliminar" type="button" data-eliminar="${escapar(movimiento.id)}" aria-label="Eliminar movimiento">Eliminar</button></td>
+        </tr>`;
+      }).join('');
+      vacio.hidden = movimientosMes.length > 0;
+    }
+
+    formulario.addEventListener('submit', function (evento) {
+      evento.preventDefault();
+      const cantidad = Number(monto.value);
+      if (!fecha.value || !concepto.value.trim() || !Number.isFinite(cantidad) || cantidad <= 0) {
+        alert('Revisa la fecha, el concepto y el monto. El monto debe ser mayor que cero.');
+        return;
+      }
+
+      movimientos.push({
+        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        tipo: tipo.value,
+        fecha: fecha.value,
+        concepto: concepto.value.trim(),
+        categoria: tipo.value === 'gasto' ? categoria.value : '',
+        monto: cantidad
+      });
+
+      guardarMovimientos();
+      mes.value = fecha.value.slice(0, 7);
+      formulario.reset();
+      fecha.value = fechaLocal();
+      actualizarCategoria();
+      renderizar();
+    });
+
+    tipo.addEventListener('change', actualizarCategoria);
+    mes.addEventListener('change', renderizar);
+
+    historial.addEventListener('click', function (evento) {
+      const boton = evento.target.closest('[data-eliminar]');
+      if (!boton) return;
+      const id = boton.getAttribute('data-eliminar');
+      movimientos = movimientos.filter(m => String(m.id) !== id);
+      guardarMovimientos();
+      renderizar();
+    });
+
+    fecha.value = fechaLocal();
+    mes.value = fechaLocal().slice(0, 7);
+    actualizarCategoria();
+    renderizar();
+  </script>
+</body>
+</html>
